@@ -139,34 +139,8 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1) {
-    //	  motorA.setSpeed(80);
-    //	  motorB.setSpeed(40);
-    //	  right = rightChannel/32;
-    //	  left = leftChannel/32;
-    //	  if(left>395)
-    //	  {
-    //		  motorA.setSpeed((left - 394)*10);
-    //	  }
-    //	  if(left<392)
-    //	  {
-    //		  motorA.setSpeed((left - 393)*10);
-    //	  }
-    //	  if(right < 389)
-    //	  {
-    //		  motorB.setSpeed(-(right - 387)*10);
-    //	  }
-    //	  if(right > 386)
-    //	  {
-    //		  motorB.setSpeed(-(right - 388)*10);
-    //	  }
-    for (second_capture = 499; second_capture <= 2500; second_capture++) {
-      TIM16->CCR1 = second_capture;
-      HAL_Delay(10);
-    }
-    for (second_capture; second_capture >= 500; second_capture--) {
-      TIM16->CCR1 = second_capture;
-      HAL_Delay(10);
-    }
+
+
     //	  if(speed < 440)
     //	  {
     //		  motorA.setSpeed(right);
