@@ -24,8 +24,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <Engine.hpp>
+// #include "EngineImpl.hpp"
+#include <memory>
 
 #include "engineController.hpp"
+// #include "engineControllerImpl.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -51,7 +54,7 @@
 
 volatile uint32_t realSpeed;
 IEngineController* motorA;
-EngineController motorB{};
+IEngineController* motorB;
 volatile int32_t speed = 0;
 int int_dec = 1;
 uint32_t IC_Val1 = 0;
@@ -117,12 +120,14 @@ int main(void)
     MX_TIM6_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
-
-    Engine rightEngine{htim3};
+    //engP dl{};
+    //engP dr{};
+    Engine rightEngine{htim3 };
     Engine leftEngine{htim4};
+    //engineParams para{};
     motorA = new EngineController{htim2, &rightEngine};
     // motorA.setParams(htim2,&rightEngine);
-    motorB.setParams(htim5, &leftEngine);
+    motorB = new EngineController(htim5, &leftEngine);
 
     HAL_TIM_Base_Start_IT(&htim6);
     //  uint32_t time_tick = HAL_GetTick();
@@ -250,7 +255,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     if (htim->Instance == TIM6)
     {
         motorA->calculateSpeed();
-        motorB.calculateSpeed();
+        motorB->calculateSpeed();
         //		motor_calculate_speed(&motorA);
         //		motor_calculate_speed(&motorB);
     }
