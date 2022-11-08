@@ -26,7 +26,7 @@
 #include <Engine.hpp>
 // #include "EngineImpl.hpp"
 #include <memory>
-
+#include <vector>
 #include "engineController.hpp"
 // #include "engineControllerImpl.hpp"
 /* USER CODE END Includes */
@@ -55,24 +55,7 @@
 volatile uint32_t realSpeed;
 IEngineController* motorA;
 IEngineController* motorB;
-volatile int32_t speed = 0;
-int int_dec = 1;
-uint32_t IC_Val1 = 0;
-uint32_t IC_Val2 = 0;
-uint32_t Difference = 0;
-int Is_First_Captured = 0;
-int blockOne = 0;
-volatile int second_capture = 0;
-volatile uint32_t IC_Val12 = 0;
-volatile uint32_t IC_Val22 = 0;
-volatile uint32_t Difference2 = 0;
-volatile int Is_First_Captured2 = 0;
-float frequency = 0;
-int32_t rightChannel = 0;
-int32_t leftChannel = 0;
-int32_t right = 0;
-int32_t left = 0;
-uint8_t speedMultiplier = 9;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -120,79 +103,30 @@ int main(void)
     MX_TIM6_Init();
     MX_TIM5_Init();
     /* USER CODE BEGIN 2 */
-    //engP dl{};
-    //engP dr{};
-    Engine rightEngine{htim3 };
+    // engP dl{};
+    // engP dr{};
+    Engine rightEngine{htim3};
     Engine leftEngine{htim4};
-    //engineParams para{};
-    motorA = new EngineController{htim2, &rightEngine};
-    // motorA.setParams(htim2,&rightEngine);
-    motorB = new EngineController(htim5, &leftEngine);
 
-    HAL_TIM_Base_Start_IT(&htim6);
-    //  uint32_t time_tick = HAL_GetTick();
-    uint32_t max_time = 1000;
-    //  int leftSpeedTable[] = {80, 60, -100, -70, 80};
-    //  int rightSpeedTable[] = {60, -60,-100, 70 , 80};
-    //  int i = 0;
+    std::vector<int> speedTable;
+    for (int i = 1; i <= 10; i++)
+    {
+        speedTable.push_back(i * 100);
+    }
+    // HAL_TIM_Base_Start_IT(&htim6);
 
-    //  HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_1);
-    //  HAL_TIM_IC_Start_IT(&htim8, TIM_CHANNEL_2);
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        //	  if(speed < 440)
-        //	  {
-        //		  motorA.setSpeed(right);
-        //		  motorB.setSpeed(left);
-        //	  }
-        //	  else if(speed > 470)
-        //	  {
-        //		  motorA.setSpeed(-(speed - 460));
-        //		  motorB.setSpeed(-(speed - 460));
-        //	  }
-        //	  if((HAL_GetTick() - time_tick) > max_time)
-        //	  {
-        //		  time_tick = HAL_GetTick();
-        //
-        //
-        //	  }
-        //  TIM16->CCR1 = 500;
-
-        //	  if((HAL_GetTick() - time_tick) > max_time )
-        //	  	  	  {
-        //
-        //	  	         time_tick = HAL_GetTick();
-        //
-        //	  	  		 speed += int_dec;
-        //	  	  		 leftEngine.setSpeed(700);
-        //	  	  		 rightEngine.setSpeed(880);
-        //
-        //	  	  		// motorA.setSpeed(speed);
-        //	  	  		// motorB.setSpeed(speed);
-        //	  	  		// realSpeed = (speed - 40 ) / 0.7;
-        //	  	  		  if(speed >= 1000)
-        //	  	  		  {
-        //	  	  			  int_dec = -1;
-        //	  	  			  max_time = 20;
-        //	  	  		  }
-        //	  	  		  else if(speed <=400)
-        //	  	  		  {
-        //	  	  			  int_dec = 1;
-        //
-        //
-        //
-        //	  //	  			TIM3->CCR4 = speed;
-        //	  //	  			TIM2->CCR4 = speed;
-        //	  	  		  }
-        //	  	  		  else
-        //	  	  		  {
-        //	  	  			  max_time = 600;
-        //	  	  		  }
-        //	  	  	  }
+        for (auto& a : speedTable)
+        {
+            leftEngine.setSpeed(a);
+            realSpeed = rightEngine.getSpeed();
+            HAL_Delay(500);
+        }
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -256,76 +190,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
     {
         motorA->calculateSpeed();
         motorB->calculateSpeed();
-        //		motor_calculate_speed(&motorA);
-        //		motor_calculate_speed(&motorB);
     }
 }
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef* htim)
-{
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) // if the interrupt source is channel1
-    {
-        if (Is_First_Captured == 0) // if the first value is not captured
-        {
-            IC_Val1 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read the first value
-            Is_First_Captured = 1; // set the first captured as true
-        }
 
-        else if (Is_First_Captured == 1) // if the first is already captured
-        {
-            IC_Val2 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1); // read second value
-
-            if (IC_Val2 > IC_Val1)
-            {
-                Difference = IC_Val2 - IC_Val1;
-            }
-
-            else if (IC_Val1 > IC_Val2)
-            {
-                Difference = (0xffff - IC_Val1) + IC_Val2;
-            }
-
-            float refClock = TIMCLOCK / (PRESCALAR);
-            float mFactor = 1000000 / refClock;
-
-            rightChannel = Difference * mFactor;
-            // rightChannel -= 12000;
-            __HAL_TIM_SET_COUNTER(htim, 0); // reset the counter
-            Is_First_Captured = 0; // set it back to false
-        }
-    }
-
-    if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_2) // if the interrupt source is channel1
-    {
-        if (Is_First_Captured == 0) // if the first value is not captured
-        {
-            IC_Val12 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2); // read the first value
-            Is_First_Captured = 3; // set the first captured as true
-        }
-
-        else if (Is_First_Captured == 1) // if the first is already captured
-        {
-            IC_Val22 = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2); // read second value
-
-            if (IC_Val22 > IC_Val12)
-            {
-                Difference2 = IC_Val22 - IC_Val12;
-            }
-
-            else if (IC_Val12 > IC_Val22)
-            {
-                Difference2 = (0xffff - IC_Val12) + IC_Val22;
-            }
-
-            float refClock = TIMCLOCK / (PRESCALAR);
-            float mFactor = 1000000 / refClock;
-
-            leftChannel = Difference2 * mFactor;
-            // leftChannel -= 12000;
-            __HAL_TIM_SET_COUNTER(htim, 0); // reset the counter
-            Is_First_Captured = 0; // set it back to false
-        }
-    }
-}
 /* USER CODE END 4 */
 
 /**
