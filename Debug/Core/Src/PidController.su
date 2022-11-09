@@ -1,2 +1,0 @@
-../Core/Src/PidController.cpp:3:6:void PidController::resetPidErrors()	16	static
-../Core/Src/PidController.cpp:8:5:int PidController::calculatePidResponse(int, int)	40	static

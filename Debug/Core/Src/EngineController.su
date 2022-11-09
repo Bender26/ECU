@@ -1,8 +1,0 @@
-../Core/Inc/Engine.hpp:23:10:void Engine::setSpeed(int16_t)	16	static
-../Core/Inc/EngineController.hpp:30:13:IEngineController::~IEngineController()	16	static
-../Core/Inc/EngineController.hpp:30:13:virtual IEngineController::~IEngineController()	16	static
-../Core/Inc/EngineController.hpp:46:5:EngineController::~EngineController()	16	static
-../Core/Inc/EngineController.hpp:46:5:virtual EngineController::~EngineController()	16	static
-../Core/Src/EngineController.cpp:3:6:virtual void EngineController::setSpeed(int32_t)	16	static
-../Core/Src/EngineController.cpp:9:6:virtual void EngineController::calculateSpeed()	24	static
-../Core/Src/EngineController.cpp:27:6:void EngineController::updateCount()	16	static
