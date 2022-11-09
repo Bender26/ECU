@@ -24,11 +24,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <Engine.hpp>
-// #include "EngineImpl.hpp"
 #include <memory>
 #include <vector>
-#include "engineController.hpp"
-// #include "engineControllerImpl.hpp"
+#include "EngineController.hpp"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,8 +50,6 @@
 
 /* USER CODE BEGIN PV */
 
-int16_t rightSpeed{0};
-int16_t leftSpeed{0};
 IEngineController* leftECU;
 IEngineController* rightECU;
 engineParams dataRight{}, dataLeft{};
@@ -106,8 +102,8 @@ int main(void)
     /* USER CODE BEGIN 2 */
     // engP dl{};
     // engP dr{};
-    Engine rightEngine{htim3, rightSpeed};
-    Engine leftEngine{htim4, leftSpeed};
+    Engine rightEngine{htim3};
+    Engine leftEngine{htim4};
 
     leftECU = new EngineController(htim2, &leftEngine, dataLeft);
     rightECU = new EngineController(htim5, &rightEngine, dataRight);
@@ -119,7 +115,7 @@ int main(void)
     }
     HAL_TIM_Base_Start_IT(&htim6);
     uint32_t timerTick = HAL_GetTick();
-    int var{0};
+    std::size_t var{0};
     int dir{1};
     /* USER CODE END 2 */
 

@@ -12,7 +12,7 @@
 class Engine
 {
 public:
-    Engine(TIM_HandleTypeDef htim, int16_t& speedTest) : htim{htim}, speedTest{speedTest}
+    Engine(TIM_HandleTypeDef htim) : htim{htim}
     {
         HAL_TIM_PWM_Start(&htim, TIM_CHANNEL_1);
         HAL_TIM_PWM_Start(&htim, TIM_CHANNEL_2);
@@ -22,9 +22,8 @@ public:
 
     void setSpeed(int16_t speed)
     {
-        speedTest = speed;
         if (speed > 0)
-        { // it's actually down
+        {
             if (speed > 1000)
             {
                 speed = 1000;
@@ -53,9 +52,7 @@ public:
             __HAL_TIM_SET_COMPARE(&htim, TIM_CHANNEL_4, 0);
         }
     }
-    int16_t getSpeed() { return speedTest; }
 
 private:
     TIM_HandleTypeDef htim;
-    int16_t& speedTest;
 };
