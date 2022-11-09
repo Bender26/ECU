@@ -1,63 +1,68 @@
 #pragma once
 
-struct param{
-	float Kp = 4.5;//
-	float Ki = 0.8;//0.8;
-	float Kd = 0.5;//0.5
-	int windup = 1000;
-} test;
-param test2{1.2,0.1,0.2};
-param test3{1.2,0.8,0.5};
-param test4{4.5,0.1,0.2};
+struct pidContext {
+  float kp = 4.5;
+  float ki = 0.8;
+  float kd = 0.5;
+  int integralMaxResponse = 1000;
+  float sum = 0;
+  int ret = 0;
+};
+pidContext test;
+pidContext test2{1.2, 0.1, 0.2};
+pidContext test3{1.2, 0.8, 0.5};
+pidContext test4{4.5, 0.1, 0.2};
+pidContext tes{};
 
-class PidController{
-public:
-	PidController( float kp, float ki, float kd, int antiWindupLimit) :
-		previousError{0},
-		totalError{0},
-		kp{kp},
-		ki{ki},
-		kd{kd},
-		antiWindupLimit{antiWindupLimit}
-		{}
-	PidController(param& par) :
-		previousError{0},
-		totalError{0},
-		kp{par.Kp},
-		ki{par.Ki},
-		kd{par.Kd},
-		antiWindupLimit{par.windup}
-		{}
+class PidController {
+ public:
+  PidController(pidContext &pidData)
+      : previousDifferentialError{0},
+        totalIntegralError{0},
+        pidParameters{pidData} {}
 
-	void reset()
-	{
-		previousError = 0;
-		totalError = 0;
-	}
-	int calculatePid(int setpoint, int process_variable)
-	{
-		int error;
-		float pTerm, iTerm, dTerm;
+  void resetPidErrors() {
+    previousDifferentialError = 0;
+    totalIntegralError = 0;
+  }
+  int calculatePidResponse(int setSpeed, int measuredSpeed) {
+    int speedDifferenceError = setSpeed - measuredSpeed;
+    float propotionalResponse{0}, integralResponse{0}, differentialResponse{0};
 
-		error = setpoint - process_variable;		//obliczenie uchybu
-		totalError += error;			//sumowanie uchybu
+    totalIntegralError += speedDifferenceError;  // sumowanie uchybu
 
-		pTerm = (float)(kp * error);		//odpowiedź członu proporcjonalnego
-		iTerm = (float)(ki * totalError);	//odpowiedź członu całkującego
-		dTerm = (float)(kd * (error - previousError));//odpowiedź członu różniczkującego
+    propotionalResponse =
+        (float)(pidParameters.kp *
+                speedDifferenceError);  // odpowiedź członu proporcjonalnego
+    integralResponse =
+        (float)(pidParameters.ki *
+                totalIntegralError);  // odpowiedź członu całkującego
+    differentialResponse =
+        (float)(pidParameters.kd *
+                (speedDifferenceError -
+                 previousDifferentialError));  // odpowiedź członu
+                                               // różniczkującego
 
-		if(iTerm >= antiWindupLimit) iTerm = antiWindupLimit;	//Anti-Windup - ograniczenie odpowiedzi członu całkującego
-		else if(iTerm <= -antiWindupLimit) iTerm = -antiWindupLimit;
+    if (integralResponse >= pidParameters.integralMaxResponse)
+      integralResponse =
+          pidParameters.integralMaxResponse;  // Anti-Windup - ograniczenie
+                                              // odpowiedzi członu całkującego
+    else if (integralResponse <= -pidParameters.integralMaxResponse)
+      integralResponse = -pidParameters.integralMaxResponse;
 
-		previousError = error;	//aktualizacja zmiennej z poprzednią wartością błędu
+    previousDifferentialError = speedDifferenceError;
 
-		return (int)(pTerm + iTerm + dTerm);		//odpowiedź regulatora
-	}
-private:
-	int previousError; 		//Poprzedni błąd dla członu różniczkującego
-	int totalError;		//Suma uchybów dla członu całkującego
-	float kp;			//Wzmocnienie członu proporcjonalnego
-	float ki;			//Wzmocnienie członu całkującego*/
-	float kd;			//Wzmocnienie członu różniczkującego*/
-	int antiWindupLimit;		//Anti-Windup - ograniczenie członu całkującego*/
+    pidParameters.sum =
+        propotionalResponse + integralResponse + differentialResponse;
+    pidParameters.ret = static_cast<int>(pidParameters.sum);
+    return pidParameters.ret;  //(int)(propotionalResponse + integralResponse +
+                               // differentialResponse);
+  }
+
+ private:
+  int previousDifferentialError;  // Poprzedni błąd dla członu różniczkującego
+  int totalIntegralError;
+  pidContext &pidParameters;  // Suma uchybów dla członu całkującego
+
+  int antiWindupLimit;  // Anti-Windup - ograniczenie członu całkującego*/
 };

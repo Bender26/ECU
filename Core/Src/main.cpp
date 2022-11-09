@@ -52,10 +52,11 @@
 
 /* USER CODE BEGIN PV */
 
-volatile uint32_t realSpeed;
-IEngineController* motorA;
-IEngineController* motorB;
-
+int16_t rightSpeed{0};
+int16_t leftSpeed{0};
+IEngineController* leftECU;
+IEngineController* rightECU;
+engineParams dataRight{}, dataLeft{};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,27 +106,48 @@ int main(void)
     /* USER CODE BEGIN 2 */
     // engP dl{};
     // engP dr{};
-    Engine rightEngine{htim3};
-    Engine leftEngine{htim4};
+    Engine rightEngine{htim3, rightSpeed};
+    Engine leftEngine{htim4, leftSpeed};
+
+    leftECU = new EngineController(htim2, &leftEngine, dataLeft);
+    rightECU = new EngineController(htim5, &rightEngine, dataRight);
 
     std::vector<int> speedTable;
     for (int i = 1; i <= 10; i++)
     {
-        speedTable.push_back(i * 100);
+        speedTable.push_back(i * -10);
     }
-    // HAL_TIM_Base_Start_IT(&htim6);
-
+    HAL_TIM_Base_Start_IT(&htim6);
+    uint32_t timerTick = HAL_GetTick();
+    int var{0};
+    int dir{1};
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        for (auto& a : speedTable)
+        if (HAL_GetTick() - timerTick > 5000)
         {
-            leftEngine.setSpeed(a);
-            realSpeed = rightEngine.getSpeed();
-            HAL_Delay(500);
+            timerTick = HAL_GetTick();
+            rightECU->setSpeed(speedTable.at(var));
+            if (dir == 1)
+            {
+                var++;
+            }
+            else
+            {
+                var--;
+            }
+            if (var == speedTable.size())
+            {
+                dir = 0;
+                var--;
+            }
+            else if (var == 0)
+            {
+                dir = 1;
+            }
         }
         /* USER CODE END WHILE */
 
@@ -188,8 +210,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM6)
     {
-        motorA->calculateSpeed();
-        motorB->calculateSpeed();
+        leftECU->calculateSpeed();
+        rightECU->calculateSpeed();
     }
 }
 
