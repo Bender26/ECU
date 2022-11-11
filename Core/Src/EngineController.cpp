@@ -1,17 +1,16 @@
 #include "EngineController.hpp"
 
-void EngineController::setSpeed(int32_t newSpeed)
+void EngineController::setSpeed(int16_t newSpeed)
 {
     if (newSpeed != params.adjustedSpeed) usedPid->resetPidErrors();
     params.adjustedSpeed = newSpeed;
 }
 
-void EngineController::calculateSpeed()
+void EngineController::calculatePWMOutput()
 {
     updateCount();
-    params.measuredSpeed = (this->params.countedPulses * TIMER_FREQENCY * SECOND_IN_MINUTE) / this->encoderResolution;
+    params.measuredSpeed = (this->params.countedPulses * measurementFrequency * seconds) / this->encoderResolution;
     auto pidResponse = usedPid->calculatePidResponse(params.adjustedSpeed, params.measuredSpeed);
-    params.outTest = pidResponse;
     params.actualPWM += pidResponse;
     if (params.actualPWM > 1000)
     {

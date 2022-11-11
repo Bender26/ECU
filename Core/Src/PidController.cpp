@@ -23,7 +23,6 @@ int PidController::calculatePidResponse(int setSpeed, int measuredSpeed)
 
     pidParameters.previousDifferentialError = speedDifferenceError;
 
-    pidParameters.summaryOfAll = propotionalResponse + integralResponse + differentialResponse;
-    pidParameters.pidResponse = static_cast<int>(pidParameters.summaryOfAll);
-    return pidParameters.pidResponse;
+    pidParameters.pidResponse = propotionalResponse + integralResponse + differentialResponse;
+    return static_cast<int>(pidParameters.pidResponse);
 }

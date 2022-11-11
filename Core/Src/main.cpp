@@ -109,7 +109,7 @@ int main(void)
     rightECU = new EngineController(htim5, &rightEngine, dataRight);
 
     std::vector<int> speedTable;
-    for (int i = 1; i <= 10; i++)
+    for (int i = 1; i <= 1000; i++)
     {
         speedTable.push_back(i * -10);
     }
@@ -206,8 +206,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM6)
     {
-        leftECU->calculateSpeed();
-        rightECU->calculateSpeed();
+        leftECU->calculatePWMOutput();
+        rightECU->calculatePWMOutput();
     }
 }
 
