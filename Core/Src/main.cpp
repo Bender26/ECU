@@ -109,10 +109,12 @@ int main(void)
     rightECU = new EngineController(htim5, &rightEngine, dataRight);
 
     std::vector<int> speedTable;
-    for (int i = 1; i <= 1000; i++)
+    for (int i = 1; i <= 12; i++)
     {
         speedTable.push_back(i * -10);
     }
+    std::vector<int> rightSpeed = {10, 20, 50, 70, 120, -80, -50, 50, -70, 0};
+    std::vector<int> leftSpeed = {10, 20, 50, 70, 120, -80, 50, -50, -70, 0};
     HAL_TIM_Base_Start_IT(&htim6);
     uint32_t timerTick = HAL_GetTick();
     std::size_t var{0};
@@ -123,26 +125,40 @@ int main(void)
     /* USER CODE BEGIN WHILE */
     while (1)
     {
+        //        if (HAL_GetTick() - timerTick > 5000)
+        //        {
+        //            timerTick = HAL_GetTick();
+        //            leftECU->setSpeed(speedTable.at(var));
+        //
+        //            rightECU->setSpeed(speedTable.at(var));
+        //            if (dir == 1)
+        //            {
+        //                var++;
+        //            }
+        //            else
+        //            {
+        //                var--;
+        //            }
+        //            if (var == speedTable.size())
+        //            {
+        //                dir = 0;
+        //                var--;
+        //            }
+        //            else if (var == 0)
+        //            {
+        //                dir = 1;
+        //            }
+        //        }
         if (HAL_GetTick() - timerTick > 5000)
         {
             timerTick = HAL_GetTick();
-            rightECU->setSpeed(speedTable.at(var));
-            if (dir == 1)
+            leftECU->setSpeed(leftSpeed.at(var));
+            rightECU->setSpeed(rightSpeed.at(var));
+
+            var++;
+            if (var == leftSpeed.size())
             {
-                var++;
-            }
-            else
-            {
-                var--;
-            }
-            if (var == speedTable.size())
-            {
-                dir = 0;
-                var--;
-            }
-            else if (var == 0)
-            {
-                dir = 1;
+                var = 0;
             }
         }
         /* USER CODE END WHILE */
