@@ -28,3 +28,9 @@ void EngineController::updateCount()
     this->params.countedPulses = (int16_t)__HAL_TIM_GET_COUNTER(&encoderTimer);
     __HAL_TIM_SET_COUNTER(&encoderTimer, 0);
 }
+
+void EngineController::stopEngine()
+{
+    params.actualPWM = 0;
+    params.adjustedSpeed = 0;
+}

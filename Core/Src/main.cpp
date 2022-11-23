@@ -20,12 +20,15 @@
 #include "main.h"
 #include "gpio.h"
 #include "tim.h"
+#include "usart.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <Engine.hpp>
+#include <cstring>
 #include <memory>
 #include <vector>
+#include "EcuParametersUpdate.hpp"
 #include "EngineController.hpp"
 /* USER CODE END Includes */
 
@@ -49,10 +52,15 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+EcuParametersUpdate msg;
 IEngineController* leftECU;
 IEngineController* rightECU;
 engineParams dataRight{}, dataLeft{};
+uint8_t data{0};
+int dir{0};
+uint8_t receivedBuffer[4]; // = {0, 0, 0, 0};
+uint8_t ecuData[4];
+bool dataReceived{false};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,6 +107,8 @@ int main(void)
     MX_TIM4_Init();
     MX_TIM6_Init();
     MX_TIM5_Init();
+    MX_UART5_Init();
+    MX_USART2_UART_Init();
     /* USER CODE BEGIN 2 */
     // engP dl{};
     // engP dr{};
@@ -108,59 +118,53 @@ int main(void)
     leftECU = new EngineController(htim2, &leftEngine, dataLeft);
     rightECU = new EngineController(htim5, &rightEngine, dataRight);
 
-    std::vector<int> speedTable;
-    for (int i = 1; i <= 12; i++)
-    {
-        speedTable.push_back(i * -10);
-    }
-    std::vector<int> rightSpeed = {10, 20, 50, 70, 120, -80, -50, 50, -70, 0};
-    std::vector<int> leftSpeed = {10, 20, 50, 70, 120, -80, 50, -50, -70, 0};
+    int rightSpeed{0};
+
+    int leftSpeed{0};
     HAL_TIM_Base_Start_IT(&htim6);
     uint32_t timerTick = HAL_GetTick();
     std::size_t var{0};
-    int dir{1};
+    HAL_UART_Receive_IT(&huart5, receivedBuffer, 4);
+
     /* USER CODE END 2 */
 
     /* Infinite loop */
     /* USER CODE BEGIN WHILE */
     while (1)
     {
-        //        if (HAL_GetTick() - timerTick > 5000)
-        //        {
-        //            timerTick = HAL_GetTick();
-        //            leftECU->setSpeed(speedTable.at(var));
-        //
-        //            rightECU->setSpeed(speedTable.at(var));
-        //            if (dir == 1)
-        //            {
-        //                var++;
-        //            }
-        //            else
-        //            {
-        //                var--;
-        //            }
-        //            if (var == speedTable.size())
-        //            {
-        //                dir = 0;
-        //                var--;
-        //            }
-        //            else if (var == 0)
-        //            {
-        //                dir = 1;
-        //            }
-        //        }
-        if (HAL_GetTick() - timerTick > 5000)
+        if (dataReceived)
         {
-            timerTick = HAL_GetTick();
-            leftECU->setSpeed(leftSpeed.at(var));
-            rightECU->setSpeed(rightSpeed.at(var));
-
-            var++;
-            if (var == leftSpeed.size())
+            switch (msg.direction)
             {
-                var = 0;
+                case 0:
+                    rightSpeed = msg.speed;
+                    leftSpeed = msg.speed;
+                    break;
+                case 1:
+                    rightSpeed = msg.speed;
+                    leftSpeed = -msg.speed;
+
+                    break;
+                case 2:
+                    rightSpeed = -msg.speed;
+                    leftSpeed = -msg.speed;
+                    break;
+                case 3:
+                    rightSpeed = -msg.speed;
+                    leftSpeed = msg.speed;
+                    break;
+                case 4:
+                    leftECU->stopEngine();
+                    rightECU->stopEngine();
+                default:
+                    leftSpeed = 0;
+                    rightSpeed = 0;
+                    break;
             }
+            leftECU->setSpeed(leftSpeed);
+            rightECU->setSpeed(rightSpeed);
         }
+
         /* USER CODE END WHILE */
 
         /* USER CODE BEGIN 3 */
@@ -218,6 +222,16 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef* huart)
+{
+    if (huart == &huart5)
+    {
+        std::memcpy(&msg, receivedBuffer, 4);
+        dataReceived = true;
+        HAL_UART_Receive_IT(&huart5, receivedBuffer, 4);
+        dir++;
+    }
+}
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim)
 {
     if (htim->Instance == TIM6)

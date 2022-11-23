@@ -23,6 +23,7 @@ public:
     virtual ~IEngineController() = default;
     virtual void setSpeed(int16_t) = 0;
     virtual void calculatePWMOutput() = 0;
+    virtual void stopEngine() = 0;
 };
 class EngineController : public IEngineController
 {
@@ -35,9 +36,11 @@ public:
     }
     ~EngineController() override { delete usedPid; }
 
-    void setSpeed(int16_t newSpeed) override;
+    void setSpeed(int16_t newSpeed) final;
 
-    void calculatePWMOutput() override;
+    void calculatePWMOutput() final;
+
+    void stopEngine() final;
 
 private:
     void updateCount();
